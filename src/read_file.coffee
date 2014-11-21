@@ -20,11 +20,13 @@ Reader.bucketer = (lineToAnalyze) ->
     if danyRe.exec lineToAnalyze
       Reader.buckets.dany_web_dish_live = 0 if Reader.buckets.dany_web_dish_live == undefined
       Reader.buckets.dany_web_dish_live += 1
-      Reader.breakdownUsids "WebDishLive",lineToAnalyze
+      count = Reader.breakdownUsids "WebDishLive",lineToAnalyze
+      Reader.bucketstat("WebDishLive",count)
     else if mobileRe.exec lineToAnalyze
       Reader.buckets.dany_mobile_dish_live = 0 if Reader.buckets.dany_mobile_dish_live == undefined
       Reader.buckets.dany_mobile_dish_live += 1 
-      Reader.breakdownUsids "MobileDishLive",lineToAnalyze
+      count = Reader.breakdownUsids "MobileDishLive",lineToAnalyze
+      Reader.bucketstat("MobileDishLive",count)
     else
       Reader.buckets.dany_unknown_dish_live = 0 if Reader.buckets.dany_unknown_dish_live == undefined
       Reader.buckets.dany_unknown_dish_live += 1
@@ -33,12 +35,15 @@ Reader.bucketer = (lineToAnalyze) ->
     if danyRe.exec lineToAnalyze
       Reader.buckets.dany_web_media_live = 0 if Reader.buckets.dany_web_media_live == undefined
       Reader.buckets.dany_web_media_live += 1
-      Reader.breakdownTmsids "WebMediaLive",lineToAnalyze
+      count = Reader.breakdownTmsids "WebMediaLive",lineToAnalyze
+      Reader.bucketstat("WebMediaLive",count)
 
     else if mobileRe.exec lineToAnalyze
       Reader.buckets.dany_mobile_media_live = 0 if Reader.buckets.dany_mobile_media_live == undefined
       Reader.buckets.dany_mobile_media_live += 1
-      Reader.breakdownTmsids "MobileMediaLive",lineToAnalyze       
+      count = Reader.breakdownTmsids "MobileMediaLive",lineToAnalyze
+      Reader.bucketstat("MobileMediaLive",count)
+
     else
       Reader.buckets.dany_unknown_media_live = 0 if Reader.buckets.dany_unknown_media_live == undefined
       Reader.buckets.dany_unknown_media_live += 1
@@ -55,6 +60,16 @@ Reader.analyzeFile = (name_of_file) ->
   console.log("dish live calls by mobile " + Reader.buckets.dany_mobile_dish_live)
   console.log("media live calls by web " + Reader.buckets.dany_web_media_live)
   console.log("media live calls by mobile " + Reader.buckets.dany_mobile_media_live)
+  loggroups = ["WebMediaLive","MobileMediaLive","WebDishLive","MobileDishLive"]
+  buckets = ["under_20","under_100","under_200","over_20"]
+  i = 0
+  while i < loggroups.length
+    v = 0
+    while v < buckets.length
+      if Reader.stats[loggroups[i]][buckets[v]]
+        console.log(loggroups[i] + "." + buckets[v] + " = " + Reader.stats[loggroups[i]][buckets[v]])
+      v += 1
+    i += 1
 
 Reader.breakdownUsids = (call_type,lineToAnalyze) ->
   tmsidRe = new RegExp "usid:\\(([0123456789\+]+)"
@@ -68,7 +83,7 @@ Reader.breakdownTmsids = (call_type,lineToAnalyze) ->
   tmsidRe = new RegExp "tmsid:\\(([MVEPSH0123456789\+]+)"
   result = tmsidRe.exec lineToAnalyze
   idcount = 0
-  if result[1]
+  if result
     idcount = result[1].split("+").length
   idcount
 
