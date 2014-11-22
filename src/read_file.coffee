@@ -4,11 +4,36 @@ Reader = {}
 Reader.filename = "testfiles/cpegi05/localhost_access_log.2014-11-14.00.txt"
 Reader.buckets = {}
 Reader.stats = {}
+
+Reader.runFiles = (file_list) ->
+  i = 0
+  while i < file_list.length
+    console.log("Parsing: " + file_list[i])
+    Reader.analyzeFile(file_list[i])
+    i += 1
+  Reader.logResults()
+
 Reader.filereader = (name_of_file) ->
   data = fs.readFileSync(name_of_file)
   number_of_lines = data.toString().split("\n").length
   number_of_lines
 
+Reader.logResults = ->
+  console.log("dish live calls by web " + Reader.buckets.dany_web_dish_live)
+  console.log("dish live calls by mobile " + Reader.buckets.dany_mobile_dish_live)
+  console.log("media live calls by web " + Reader.buckets.dany_web_media_live)
+  console.log("media live calls by mobile " + Reader.buckets.dany_mobile_media_live)
+  loggroups = ["WebMediaLive","MobileMediaLive","WebDishLive","MobileDishLive"]
+  buckets = ["under_20","under_100","under_200","over_20"]
+  i = 0
+  while i < loggroups.length
+    v = 0
+    debugger
+    while v < buckets.length
+      if Reader.stats[loggroups[i]] && Reader.stats[loggroups[i]][buckets[v]]
+        console.log(loggroups[i] + "." + buckets[v] + " = " + Reader.stats[loggroups[i]][buckets[v]])
+      v += 1
+    i += 1  
 
 Reader.bucketer = (lineToAnalyze) ->
   egiRe = new RegExp "\/solr\/dish_live\/select\/"
@@ -56,20 +81,7 @@ Reader.analyzeFile = (name_of_file) ->
   while i < data.length
     Reader.bucketer data[i]
     i++
-  console.log("dish live calls by web " + Reader.buckets.dany_web_dish_live)
-  console.log("dish live calls by mobile " + Reader.buckets.dany_mobile_dish_live)
-  console.log("media live calls by web " + Reader.buckets.dany_web_media_live)
-  console.log("media live calls by mobile " + Reader.buckets.dany_mobile_media_live)
-  loggroups = ["WebMediaLive","MobileMediaLive","WebDishLive","MobileDishLive"]
-  buckets = ["under_20","under_100","under_200","over_20"]
-  i = 0
-  while i < loggroups.length
-    v = 0
-    while v < buckets.length
-      if Reader.stats[loggroups[i]][buckets[v]]
-        console.log(loggroups[i] + "." + buckets[v] + " = " + Reader.stats[loggroups[i]][buckets[v]])
-      v += 1
-    i += 1
+
 
 Reader.breakdownUsids = (call_type,lineToAnalyze) ->
   tmsidRe = new RegExp "usid:\\(([0123456789\+]+)"
