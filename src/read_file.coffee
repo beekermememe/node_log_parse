@@ -23,7 +23,7 @@ Reader.logResults = ->
   console.log("dish live calls by mobile " + Reader.buckets.dany_mobile_dish_live)
   console.log("media live calls by web " + Reader.buckets.dany_web_media_live)
   console.log("media live calls by mobile " + Reader.buckets.dany_mobile_media_live)
-  loggroups = ["WebMediaLive","MobileMediaLive","WebDishLive","MobileDishLive"]
+  loggroups = ["WebMediaLive","MobileMediaLive","WebDishLive","MobileDishLive","WebDishLivePageSize","MobileDishLivePageSize","UnknownDishLivePageSize"]
   buckets = ["under_20","under_100","under_200","over_20"]
   i = 0
   while i < loggroups.length
@@ -47,16 +47,21 @@ Reader.bucketer = (lineToAnalyze) ->
       Reader.buckets.dany_web_dish_live += 1
       count = Reader.breakdownUsids "WebDishLive",lineToAnalyze
       Reader.bucketstat("WebDishLive",count)
+      rowcount = Reader.breakdownPagesize("WebDishLivePageSize",lineToAnalyze)
+      Reader.bucketstat("WebDishLivePageSize",rowcount)
     else if mobileRe.exec lineToAnalyze
       Reader.buckets.dany_mobile_dish_live = 0 if Reader.buckets.dany_mobile_dish_live == undefined
       Reader.buckets.dany_mobile_dish_live += 1 
       count = Reader.breakdownUsids "MobileDishLive",lineToAnalyze
       Reader.bucketstat("MobileDishLive",count)
+      rowcount = Reader.breakdownPagesize("MobileDishLivePageSize",lineToAnalyze)
+      Reader.bucketstat("MobileDishLivePageSize",rowcount)
     else
       Reader.buckets.dany_unknown_dish_live = 0 if Reader.buckets.dany_unknown_dish_live == undefined
       Reader.buckets.dany_unknown_dish_live += 1
+      rowcount = Reader.breakdownPagesize("UnknownDishLivePageSize",lineToAnalyze)
+      Reader.bucketstat("UnknownDishLivePageSize",rowcount)
   else if mliveRe.exec lineToAnalyze
-    debugger
     if danyRe.exec lineToAnalyze
       Reader.buckets.dany_web_media_live = 0 if Reader.buckets.dany_web_media_live == undefined
       Reader.buckets.dany_web_media_live += 1
@@ -98,6 +103,14 @@ Reader.breakdownTmsids = (call_type,lineToAnalyze) ->
   if result
     idcount = result[1].split("+").length
   idcount
+
+Reader.breakdownPagesize = (call_type,lineToAnalyze) ->
+  rowsRe = new RegExp "rows=([0123456789]+)"
+  result = rowsRe.exec lineToAnalyze
+  count = 0
+  if result
+    count = result[1]
+  parseInt(count)
 
 Reader.bucketstat = (call_type,count) ->
   if Reader.stats[call_type] == undefined

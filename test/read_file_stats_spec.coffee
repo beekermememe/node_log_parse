@@ -11,6 +11,15 @@ describe "File Reader", ->
     it "extract the number of usids", ->
       tms_id_count = Rf.breakdownUsids("usid",line_to_test)
       assert.equal(tms_id_count,10)
+    it "extract the number of rows", ->
+      row_count = Rf.breakdownPagesize("rows",line_to_test)
+      assert.equal(row_count,1000)
+
+    it "extract the number of rows", ->
+      l2t = '72.246.40.36 0.003 [14/Nov/2014:00:27:35 -0700] 200 51865 "GET /solr/dish_live/select/?q=(usid:(21992+5349+20833+20834+20835+20836+20989+34006+20840+20841))&fq=(start_date_time:[*+TO+2014-11-16T12:00:00Z]+AND+end_date_time:[2014-11-16T08:00:00Z+TO+*])&fl=start_date_time,end_date_time,usid,schedule_id,program_id,program_title,episode_id,episode_theme,is_hd,is_new,egid,episode_description,callsign,tv_rating,mpaa_rating,program_logo_dish_url,channel_image,program_image,mv_tmsid,upid,duration,tms_series_id,episode_title,season_num,episode_num,channel_padded,originalairdate,actors&sort=start_date_time+asc&wt=json&rows=1000 HTTP/1.1" "gzip" "gzip" "dish-sg-ipad/6.5.2"'
+      row_count = Rf.breakdownPagesize("rows",l2t)
+      assert.equal(row_count,1000)
+
 
   describe "Logging stats", ->
     it "log the number of TMSIDS", ->
@@ -29,4 +38,5 @@ describe "File Reader", ->
       Rf.bucketstat("tmsid",320)
       assert.equal(Rf.stats['tmsid'].over_200, 1)
       Rf.bucketstat("tmsid",320)
-      assert.equal(Rf.stats['tmsid'].over_200, 2)    
+      assert.equal(Rf.stats['tmsid'].over_200, 2)
+
